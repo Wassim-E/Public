@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#4a90e2">
+    <title>Flappy Bird</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-512.png">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🐦 Flappy Bird</h1>
+            <p class="subtitle">Tap to fly! Avoid the pipes.</p>
+        </header>
+
+        <div class="game-container">
+            <canvas id="gameCanvas" width="320" height="480"></canvas>
+            
+            <div class="controls">
+                <div class="score-display">
+                    <span>Score: </span>
+                    <span id="score">0</span>
+                    <span class="high-score">Best: <span id="highScore">0</span></span>
+                </div>
+                
+                <div class="buttons">
+                    <button id="startBtn" class="btn primary">Start Game</button>
+                    <button id="restartBtn" class="btn secondary" style="display: none;">Restart</button>
+                    <button id="installBtn" class="btn install" style="display: none;">📱 Install App</button>
+                </div>
+                
+                <div class="instructions">
+                    <p>📱 <strong>Tap anywhere</strong> to make the bird fly up</p>
+                    <p>🎯 <strong>Avoid the pipes</strong> to score points</p>
+                    <p>📦 <strong>Install</strong> for fullscreen phone experience</p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Created with OpenClaw • Game runs entirely in your browser</p>
+            <p class="github-link">Source: <a href="#" id="sourceLink">View on GitHub</a></p>
+        </footer>
+    </div>
+
+    <div id="gameOver" class="overlay" style="display: none;">
+        <div class="overlay-content">
+            <h2>Game Over!</h2>
+            <p>Your score: <span id="finalScore">0</span></p>
+            <p>Best score: <span id="finalHighScore">0</span></p>
+            <button id="playAgainBtn" class="btn primary">Play Again</button>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+    <script src="pwa.js"></script>
+</body>
+</html>
