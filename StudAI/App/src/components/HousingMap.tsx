@@ -5,7 +5,6 @@ import { useEffect, useMemo, useState } from "react";
 import {
   CircleMarker,
   MapContainer,
-  Marker,
   Popup,
   TileLayer,
   useMap,
@@ -28,6 +27,41 @@ const PARIS_CENTER: [number, number] = [48.8566, 2.3522];
 export function HousingMap({ housing }: { housing: Housing[] }) {
   const [workPin, setWorkPin] = useState<[number, number] | null>(null);
 
+  const housingMarkers = useMemo(() => {
+    return housing
+      .filter((h) => Number.isFinite(h.lat) && Number.isFinite(h.lng))
+      .map((h) => (
+        <CircleMarker
+          key={h.id}
+          center={[h.lat, h.lng]}
+          radius={6}
+          pathOptions={{
+            color: "#0b1020",
+            weight: 1,
+            fillColor: "#7aa2ff",
+            fillOpacity: 0.85,
+          }}
+        >
+          <Popup>
+            <div className="popupTitle">{h.name}</div>
+            <div className="popupMeta">
+              <div>Type: {h.type ?? "—"}</div>
+              <div>Provider: {h.provider ?? "—"}</div>
+              <div>Rent: {h.rent ? `${h.rent}€/month` : "—"}</div>
+              <div>Surface: {h.surface ? `${h.surface}m²` : "—"}</div>
+              <div>Distance: {h.distance ?? "—"}</div>
+              <div>Updated: {h.lastUpdated ?? "—"}</div>
+            </div>
+            {h.url ? (
+              <a className="popupLink" href={h.url} target="_blank" rel="noreferrer">
+                View on Studyrama
+              </a>
+            ) : null}
+          </Popup>
+        </CircleMarker>
+      ));
+  }, [housing]);
+
   const bounds = useMemo(() => {
     const pts = housing
       .map((h) => (Number.isFinite(h.lat) && Number.isFinite(h.lng) ? ([h.lat, h.lng] as const) : null))
@@ -38,10 +72,13 @@ export function HousingMap({ housing }: { housing: Housing[] }) {
   }, [housing]);
 
   return (
-    <MapContainer className="map" center={PARIS_CENTER} zoom={12} scrollWheelZoom>
+    <MapContainer className="map" center={PARIS_CENTER} zoom={12} scrollWheelZoom preferCanvas>
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        updateWhenZooming={false}
+        updateWhenIdle
+        keepBuffer={6}
       />
 
       <MapClickHandler onClick={(lat, lng) => setWorkPin([lat, lng])} />
@@ -60,26 +97,7 @@ export function HousingMap({ housing }: { housing: Housing[] }) {
         </CircleMarker>
       ) : null}
 
-      {housing.map((h) => (
-        <Marker key={h.id} position={[h.lat, h.lng]}>
-          <Popup>
-            <div className="popupTitle">{h.name}</div>
-            <div className="popupMeta">
-              <div>Type: {h.type ?? "—"}</div>
-              <div>Provider: {h.provider ?? "—"}</div>
-              <div>Rent: {h.rent ? `${h.rent}€/month` : "—"}</div>
-              <div>Surface: {h.surface ? `${h.surface}m²` : "—"}</div>
-              <div>Distance: {h.distance ?? "—"}</div>
-              <div>Updated: {h.lastUpdated ?? "—"}</div>
-            </div>
-            {h.url ? (
-              <a className="popupLink" href={h.url} target="_blank" rel="noreferrer">
-                View on Studyrama
-              </a>
-            ) : null}
-          </Popup>
-        </Marker>
-      ))}
+      {housingMarkers}
 
       <AutoFit bounds={bounds} />
     </MapContainer>
