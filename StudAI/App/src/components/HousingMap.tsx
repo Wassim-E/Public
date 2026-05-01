@@ -1,0 +1,115 @@
+import "leaflet/dist/leaflet.css";
+import "./HousingMap.css";
+import L from "leaflet";
+import { useEffect, useMemo, useState } from "react";
+import {
+  CircleMarker,
+  MapContainer,
+  Marker,
+  Popup,
+  TileLayer,
+  useMap,
+  useMapEvents,
+} from "react-leaflet";
+import type { Housing } from "../types";
+
+import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
+
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: markerIcon2x,
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
+});
+
+const PARIS_CENTER: [number, number] = [48.8566, 2.3522];
+
+export function HousingMap({ housing }: { housing: Housing[] }) {
+  const [workPin, setWorkPin] = useState<[number, number] | null>(null);
+
+  const bounds = useMemo(() => {
+    const pts = housing
+      .map((h) => (Number.isFinite(h.lat) && Number.isFinite(h.lng) ? ([h.lat, h.lng] as const) : null))
+      .filter(Boolean) as Array<[number, number]>;
+    if (pts.length === 0) return null;
+    const latLngs = pts.map((p) => L.latLng(p[0], p[1]));
+    return L.latLngBounds(latLngs);
+  }, [housing]);
+
+  return (
+    <MapContainer className="map" center={PARIS_CENTER} zoom={12} scrollWheelZoom>
+      <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+
+      <MapClickHandler onClick={(lat, lng) => setWorkPin([lat, lng])} />
+
+      {workPin ? (
+        <CircleMarker center={workPin} radius={10} pathOptions={{ color: "#7aa2ff", weight: 3 }}>
+          <Popup>
+            <div className="popupTitle">Work pin</div>
+            <div className="popupMeta">
+              <div>
+                Lat/Lng: {workPin[0].toFixed(5)}, {workPin[1].toFixed(5)}
+              </div>
+              <div>Next: compute commute-time bands from this point.</div>
+            </div>
+          </Popup>
+        </CircleMarker>
+      ) : null}
+
+      {housing.map((h) => (
+        <Marker key={h.id} position={[h.lat, h.lng]}>
+          <Popup>
+            <div className="popupTitle">{h.name}</div>
+            <div className="popupMeta">
+              <div>Type: {h.type ?? "—"}</div>
+              <div>Provider: {h.provider ?? "—"}</div>
+              <div>Rent: {h.rent ? `${h.rent}€/month` : "—"}</div>
+              <div>Surface: {h.surface ? `${h.surface}m²` : "—"}</div>
+              <div>Distance: {h.distance ?? "—"}</div>
+              <div>Updated: {h.lastUpdated ?? "—"}</div>
+            </div>
+            {h.url ? (
+              <a className="popupLink" href={h.url} target="_blank" rel="noreferrer">
+                View on Studyrama
+              </a>
+            ) : null}
+          </Popup>
+        </Marker>
+      ))}
+
+      <AutoFit bounds={bounds} />
+    </MapContainer>
+  );
+}
+
+function MapClickHandler({ onClick }: { onClick: (lat: number, lng: number) => void }) {
+  useMapEvents({
+    click(e) {
+      onClick(e.latlng.lat, e.latlng.lng);
+    },
+  });
+  return null;
+}
+
+function AutoFit({ bounds }: { bounds: L.LatLngBounds | null }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!bounds) return;
+    map.fitBounds(bounds.pad(0.2));
+  }, [bounds, map]);
+  return null;
+}
+
+function fmt(n: number | undefined) {
+  if (n == null) return "—";
+  return (Math.round(n * 10) / 10).toFixed(1);
+}
+
+function fmtSigned(n: number) {
+  const fixed = (Math.round(n * 10) / 10).toFixed(1);
+  return n >= 0 ? `+${fixed}` : fixed;
+}

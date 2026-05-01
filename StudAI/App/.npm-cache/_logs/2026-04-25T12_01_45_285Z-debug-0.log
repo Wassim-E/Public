@@ -1,0 +1,103 @@
+0 verbose cli C:\Program Files\nodejs\node.exe C:\Program Files\nodejs\node_modules\npm\bin\npm-cli.js
+1 info using npm@10.7.0
+2 info using node@v20.15.1
+3 silly config:load:file:C:\Program Files\nodejs\node_modules\npm\npmrc
+4 silly config:load:file:C:\Users\admin\Documents\Personnal Projects\Fuck Around\StudAI\App\.npmrc
+5 silly config:load:file:C:\Users\admin\.npmrc
+6 silly config:load:file:C:\Users\admin\AppData\Roaming\npm\etc\npmrc
+7 verbose title npm install
+8 verbose argv "install" "--no-fund" "--no-audit" "--cache" ".npm-cache"
+9 verbose logfile logs-max:10 dir:C:\Users\admin\Documents\Personnal Projects\Fuck Around\StudAI\App\.npm-cache\_logs\2026-04-25T12_01_45_285Z-
+10 verbose logfile C:\Users\admin\Documents\Personnal Projects\Fuck Around\StudAI\App\.npm-cache\_logs\2026-04-25T12_01_45_285Z-debug-0.log
+11 silly logfile done cleaning log files
+12 silly idealTree buildDeps
+13 silly fetch manifest leaflet@^1.9.4
+14 http fetch GET https://registry.npmjs.org/npm attempt 1 failed with EACCES
+15 http fetch GET https://registry.npmjs.org/leaflet attempt 1 failed with EACCES
+16 http fetch GET https://registry.npmjs.org/npm attempt 2 failed with EACCES
+17 http fetch GET https://registry.npmjs.org/leaflet attempt 2 failed with EACCES
+18 http fetch GET https://registry.npmjs.org/npm attempt 3 failed with EACCES
+19 http fetch GET https://registry.npmjs.org/leaflet attempt 3 failed with EACCES
+20 silly fetch manifest react@^18.3.1
+21 http fetch GET https://registry.npmjs.org/react attempt 1 failed with EACCES
+22 http fetch GET https://registry.npmjs.org/react attempt 2 failed with EACCES
+23 http fetch GET https://registry.npmjs.org/react attempt 3 failed with EACCES
+24 silly fetch manifest react-dom@^18.3.1
+25 http fetch GET https://registry.npmjs.org/react-dom attempt 1 failed with EACCES
+26 http fetch GET https://registry.npmjs.org/react-dom attempt 2 failed with EACCES
+27 http fetch GET https://registry.npmjs.org/react-dom attempt 3 failed with EACCES
+28 silly fetch manifest react-leaflet@^4.2.1
+29 http fetch GET https://registry.npmjs.org/react-leaflet attempt 1 failed with EACCES
+30 http fetch GET https://registry.npmjs.org/react-leaflet attempt 2 failed with EACCES
+31 http fetch GET https://registry.npmjs.org/react-leaflet attempt 3 failed with EACCES
+32 silly fetch manifest @types/leaflet@^1.9.12
+33 http fetch GET https://registry.npmjs.org/@types%2fleaflet attempt 1 failed with EACCES
+34 http fetch GET https://registry.npmjs.org/@types%2fleaflet attempt 2 failed with EACCES
+35 http fetch GET https://registry.npmjs.org/@types%2fleaflet attempt 3 failed with EACCES
+36 silly fetch manifest @types/react@^18.3.12
+37 http fetch GET https://registry.npmjs.org/@types%2freact attempt 1 failed with EACCES
+38 http fetch GET https://registry.npmjs.org/@types%2freact attempt 2 failed with EACCES
+39 http fetch GET https://registry.npmjs.org/@types%2freact attempt 3 failed with EACCES
+40 silly fetch manifest @types/react-dom@^18.3.1
+41 http fetch GET https://registry.npmjs.org/@types%2freact-dom attempt 1 failed with EACCES
+42 http fetch GET https://registry.npmjs.org/@types%2freact-dom attempt 2 failed with EACCES
+43 http fetch GET https://registry.npmjs.org/@types%2freact-dom attempt 3 failed with EACCES
+44 silly fetch manifest @vitejs/plugin-react@^4.3.3
+45 http fetch GET https://registry.npmjs.org/@vitejs%2fplugin-react attempt 1 failed with EACCES
+46 http fetch GET https://registry.npmjs.org/@vitejs%2fplugin-react attempt 2 failed with EACCES
+47 http fetch GET https://registry.npmjs.org/@vitejs%2fplugin-react attempt 3 failed with EACCES
+48 silly fetch manifest typescript@^5.6.3
+49 http fetch GET https://registry.npmjs.org/typescript attempt 1 failed with EACCES
+50 http fetch GET https://registry.npmjs.org/typescript attempt 2 failed with EACCES
+51 http fetch GET https://registry.npmjs.org/typescript attempt 3 failed with EACCES
+52 silly fetch manifest vite@^5.4.10
+53 http fetch GET https://registry.npmjs.org/vite attempt 1 failed with EACCES
+54 http fetch GET https://registry.npmjs.org/vite attempt 2 failed with EACCES
+55 http fetch GET https://registry.npmjs.org/vite attempt 3 failed with EACCES
+56 silly placeDep ROOT @types/leaflet@ OK for: studai-frontend@0.1.0 want: ^1.9.12
+57 silly placeDep ROOT @types/react@ OK for: studai-frontend@0.1.0 want: ^18.3.12
+58 silly placeDep ROOT @types/react-dom@ OK for: studai-frontend@0.1.0 want: ^18.3.1
+59 silly placeDep ROOT @vitejs/plugin-react@ OK for: studai-frontend@0.1.0 want: ^4.3.3
+60 silly placeDep ROOT leaflet@ OK for: studai-frontend@0.1.0 want: ^1.9.4
+61 silly placeDep ROOT react@ OK for: studai-frontend@0.1.0 want: ^18.3.1
+62 silly placeDep ROOT react-dom@ OK for: studai-frontend@0.1.0 want: ^18.3.1
+63 silly placeDep ROOT react-leaflet@ OK for: studai-frontend@0.1.0 want: ^4.2.1
+64 silly placeDep ROOT typescript@ OK for: studai-frontend@0.1.0 want: ^5.6.3
+65 silly placeDep ROOT vite@ OK for: studai-frontend@0.1.0 want: ^5.4.10
+66 verbose type system
+67 verbose stack FetchError: request to https://registry.npmjs.org/@types%2fleaflet failed, reason: 
+67 verbose stack     at ClientRequest.<anonymous> (C:\Program Files\nodejs\node_modules\npm\node_modules\minipass-fetch\lib\index.js:130:14)
+67 verbose stack     at ClientRequest.emit (node:events:519:28)
+67 verbose stack     at _destroy (node:_http_client:880:13)
+67 verbose stack     at onSocketNT (node:_http_client:900:5)
+67 verbose stack     at process.processTicksAndRejections (node:internal/process/task_queues:83:21)
+68 verbose cwd C:\Users\admin\Documents\Personnal Projects\Fuck Around\StudAI\App
+69 verbose Windows_NT 10.0.26200
+70 verbose node v20.15.1
+71 verbose npm  v10.7.0
+72 error code EACCES
+73 error errno EACCES
+74 error FetchError: request to https://registry.npmjs.org/@types%2fleaflet failed, reason: 
+74 error     at ClientRequest.<anonymous> (C:\Program Files\nodejs\node_modules\npm\node_modules\minipass-fetch\lib\index.js:130:14)
+74 error     at ClientRequest.emit (node:events:519:28)
+74 error     at _destroy (node:_http_client:880:13)
+74 error     at onSocketNT (node:_http_client:900:5)
+74 error     at process.processTicksAndRejections (node:internal/process/task_queues:83:21) {
+74 error   code: 'EACCES',
+74 error   errno: 'EACCES',
+74 error   type: 'system',
+74 error   requiredBy: '.'
+74 error }
+75 error
+75 error The operation was rejected by your operating system.
+75 error It's possible that the file was already in use (by a text editor or antivirus),
+75 error or that you lack permissions to access it.
+75 error
+75 error If you believe this might be a permissions issue, please double-check the
+75 error permissions of the file and its containing directories, or try running
+75 error the command again as root/Administrator.
+76 verbose exit 1
+77 verbose code 1
+78 silly unfinished npm timer reify 1777118506261
+79 silly unfinished npm timer reify:loadTrees 1777118506377
+80 error A complete log of this run can be found in: C:\Users\admin\Documents\Personnal Projects\Fuck Around\StudAI\App\.npm-cache\_logs\2026-04-25T12_01_45_285Z-debug-0.log
