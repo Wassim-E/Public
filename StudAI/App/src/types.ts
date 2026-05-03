@@ -13,3 +13,14 @@ export type Housing = {
   lastUpdated?: string;
 };
 
+export type TransitMode = "metro" | "rer" | "tram";
+
+export type TransitRoute = {
+  id: string;
+  shortName: string;            // "1", "A", "T3a"
+  longName?: string;            // commercial name
+  mode: TransitMode;
+  color: string;                // "#FFCD00"
+  shapes: [number, number][][]; // multiple polylines per route ([lat,lng])
+};
+

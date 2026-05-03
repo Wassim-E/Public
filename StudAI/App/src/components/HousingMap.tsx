@@ -1,7 +1,7 @@
 import "leaflet/dist/leaflet.css";
 import "./HousingMap.css";
 import L from "leaflet";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import {
   CircleMarker,
   MapContainer,
@@ -10,7 +10,10 @@ import {
   useMap,
   useMapEvents,
 } from "react-leaflet";
-import type { Housing } from "../types";
+import type { Housing, TransitRoute } from "../types";
+import type { FilterState } from "../lib/filters";
+import { IsochroneLayer } from "./IsochroneLayer";
+import { TransitLayer } from "./TransitLayer";
 
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
@@ -24,8 +27,15 @@ L.Icon.Default.mergeOptions({
 
 const PARIS_CENTER: [number, number] = [48.8566, 2.3522];
 
-export function HousingMap({ housing }: { housing: Housing[] }) {
-  const [workPin, setWorkPin] = useState<[number, number] | null>(null);
+type Props = {
+  housing: Housing[];
+  filters: FilterState;
+  transitRoutes: TransitRoute[];
+  onWorkPinChange: (pin: [number, number] | null) => void;
+};
+
+export function HousingMap({ housing, filters, transitRoutes, onWorkPinChange }: Props) {
+  const workPin = filters.workPin;
 
   const housingMarkers = useMemo(() => {
     return housing
@@ -81,17 +91,24 @@ export function HousingMap({ housing }: { housing: Housing[] }) {
         keepBuffer={6}
       />
 
-      <MapClickHandler onClick={(lat, lng) => setWorkPin([lat, lng])} />
+      <MapClickHandler onClick={(lat, lng) => onWorkPinChange([lat, lng])} />
+
+      <TransitLayer routes={transitRoutes} />
+
+      <IsochroneLayer
+        workPin={workPin}
+        minutes={filters.maxCommuteMinutes}
+        avgSpeedKmh={filters.avgTransitSpeedKmh}
+      />
 
       {workPin ? (
         <CircleMarker center={workPin} radius={10} pathOptions={{ color: "#7aa2ff", weight: 3 }}>
           <Popup>
-            <div className="popupTitle">Work pin</div>
+            <div className="popupTitle">Workplace</div>
             <div className="popupMeta">
               <div>
-                Lat/Lng: {workPin[0].toFixed(5)}, {workPin[1].toFixed(5)}
+                {workPin[0].toFixed(5)}, {workPin[1].toFixed(5)}
               </div>
-              <div>Next: compute commute-time bands from this point.</div>
             </div>
           </Popup>
         </CircleMarker>
@@ -115,9 +132,11 @@ function MapClickHandler({ onClick }: { onClick: (lat: number, lng: number) => v
 
 function AutoFit({ bounds }: { bounds: L.LatLngBounds | null }) {
   const map = useMap();
+  const hasFitRef = useRef(false);
   useEffect(() => {
-    if (!bounds) return;
+    if (!bounds || hasFitRef.current) return;
     map.fitBounds(bounds.pad(0.2));
+    hasFitRef.current = true;
   }, [bounds, map]);
   return null;
 }

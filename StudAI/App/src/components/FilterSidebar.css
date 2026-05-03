@@ -1,0 +1,192 @@
+.filter-sidebar {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 280px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  background: rgba(11, 16, 32, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 16px;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  color: var(--text);
+  font-size: 13px;
+  display: grid;
+  gap: 14px;
+  box-shadow: 0 16px 60px rgba(0, 0, 0, 0.35);
+}
+
+.filter-sidebar__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 10px;
+}
+
+.filter-sidebar__title {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.filter-sidebar__count {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+}
+
+.filter-section {
+  display: grid;
+  gap: 6px;
+}
+
+.filter-section__label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.filter-value {
+  margin-left: auto;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+}
+
+.filter-pin-status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+}
+
+.filter-hint {
+  font-size: 11px;
+  color: var(--muted);
+  font-style: italic;
+}
+
+.filter-clear {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: var(--muted);
+  border-radius: 6px;
+  padding: 2px 8px;
+  cursor: pointer;
+  font-size: 11px;
+}
+.filter-clear:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+}
+
+.filter-sidebar input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.filter-sidebar input[type="checkbox"] {
+  accent-color: var(--accent);
+}
+
+.filter-modes {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.filter-mode-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+  user-select: none;
+}
+.filter-mode-pill.is-on {
+  border-color: var(--accent);
+  color: var(--text);
+  background: rgba(122, 162, 255, 0.12);
+}
+.filter-mode-pill input[type="checkbox"] {
+  display: none;
+}
+
+.filter-routes-details {
+  margin-top: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 4px 8px;
+}
+.filter-routes-details summary {
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--muted);
+  padding: 4px 0;
+  list-style: none;
+}
+.filter-routes-details summary::-webkit-details-marker {
+  display: none;
+}
+.filter-routes-details summary::before {
+  content: "▸";
+  display: inline-block;
+  margin-right: 6px;
+  transition: transform 0.15s ease;
+}
+.filter-routes-details[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.filter-routes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: 4px;
+  padding: 6px 0 4px;
+}
+
+.filter-route-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text);
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  user-select: none;
+}
+.filter-route-chip:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+.filter-route-chip.is-off {
+  opacity: 0.4;
+}
+.filter-route-chip input[type="checkbox"] {
+  display: none;
+}
+
+.route-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.route-name {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
