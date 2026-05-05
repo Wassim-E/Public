@@ -1,5 +1,10 @@
 import "./FilterSidebar.css";
-import type { TransitMode, TransitRoute } from "../types";
+import type {
+  HousingCategory,
+  TileStyle,
+  TransitMode,
+  TransitRoute,
+} from "../types";
 import { toggleArrayItem, type FilterState } from "../lib/filters";
 
 type Props = {
@@ -16,7 +21,24 @@ const MODE_LABELS: Record<TransitMode, string> = {
   tram: "Tram",
 };
 
-export function FilterSidebar({ state, onChange, matchCount, totalCount, allRoutes }: Props) {
+const TILE_OPTIONS: { value: TileStyle; label: string }[] = [
+  { value: "mono-light", label: "Light" },
+  { value: "mono-dark", label: "Dark" },
+  { value: "color", label: "Color" },
+];
+
+const CATEGORY_LABELS: Record<HousingCategory, string> = {
+  private: "Private",
+  crous: "CROUS",
+};
+
+export function FilterSidebar({
+  state,
+  onChange,
+  matchCount,
+  totalCount,
+  allRoutes,
+}: Props) {
   const routesByMode = groupRoutesByMode(allRoutes);
 
   return (
@@ -27,6 +49,44 @@ export function FilterSidebar({ state, onChange, matchCount, totalCount, allRout
           {matchCount} / {totalCount}
         </div>
       </header>
+
+      <section className="filter-section">
+        <div className="filter-section__label">Map</div>
+        <div className="filter-pills">
+          {TILE_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              className={`filter-pill ${state.tileStyle === opt.value ? "is-on" : ""}`}
+              onClick={() => onChange({ tileStyle: opt.value })}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="filter-section">
+        <div className="filter-section__label">Residence type</div>
+        <div className="filter-pills">
+          {(["private", "crous"] as HousingCategory[]).map((c) => {
+            const on = state.categories.includes(c);
+            return (
+              <button
+                key={c}
+                className={`filter-pill ${on ? "is-on" : ""}`}
+                onClick={() =>
+                  onChange({ categories: toggleArrayItem(state.categories, c) })
+                }
+              >
+                {CATEGORY_LABELS[c]}
+              </button>
+            );
+          })}
+        </div>
+        {state.categories.includes("crous") && !state.categories.includes("private") && (
+          <div className="filter-hint">CROUS rents vary with CAF aid; budget filter does not apply</div>
+        )}
+      </section>
 
       <section className="filter-section">
         <div className="filter-section__label">Workplace</div>
@@ -112,66 +172,85 @@ export function FilterSidebar({ state, onChange, matchCount, totalCount, allRout
           value={state.avgTransitSpeedKmh}
           onChange={(e) => onChange({ avgTransitSpeedKmh: Number(e.target.value) })}
         />
-        <div className="filter-hint">
-          Used to convert commute minutes to a circle. 25 km/h ≈ Paris metro+walk.
-        </div>
       </section>
 
       <section className="filter-section">
-        <div className="filter-section__label">Transit overlay</div>
-        <div className="filter-modes">
-          {(["metro", "rer", "tram"] as TransitMode[]).map((m) => {
-            const on = state.transitVisibleModes.includes(m);
-            return (
-              <label key={m} className={`filter-mode-pill ${on ? "is-on" : ""}`}>
-                <input
-                  type="checkbox"
-                  checked={on}
-                  onChange={() =>
-                    onChange({
-                      transitVisibleModes: toggleArrayItem(state.transitVisibleModes, m),
-                    })
-                  }
-                />
-                <span>
-                  {MODE_LABELS[m]} ({routesByMode[m]?.length ?? 0})
-                </span>
-              </label>
-            );
-          })}
+        <div className="filter-section__row">
+          <div className="filter-section__label">Transit overlay</div>
+          <label className="filter-mini-toggle">
+            <input
+              type="checkbox"
+              checked={state.showStations}
+              onChange={(e) => onChange({ showStations: e.target.checked })}
+            />
+            <span>Stations</span>
+          </label>
+        </div>
+
+        <div className="filter-pills">
+          <button
+            className="filter-pill"
+            onClick={() => onChange({ transitShownRouteIds: allRoutes.map((r) => r.id) })}
+          >
+            All
+          </button>
+          <button
+            className="filter-pill"
+            onClick={() => onChange({ transitShownRouteIds: [] })}
+          >
+            None
+          </button>
+          {(["metro", "rer", "tram"] as TransitMode[]).map((m) => (
+            <button
+              key={m}
+              className="filter-pill"
+              onClick={() =>
+                onChange({
+                  transitShownRouteIds: allRoutes
+                    .filter((r) => r.mode === m)
+                    .map((r) => r.id),
+                })
+              }
+            >
+              {MODE_LABELS[m]}s
+            </button>
+          ))}
         </div>
 
         {(["metro", "rer", "tram"] as TransitMode[]).map((m) => {
-          if (!state.transitVisibleModes.includes(m)) return null;
           const routes = routesByMode[m] ?? [];
           if (routes.length === 0) return null;
           return (
-            <details key={m} className="filter-routes-details">
-              <summary>{MODE_LABELS[m]} routes</summary>
-              <div className="filter-routes-grid">
+            <div key={m} className="filter-route-row">
+              <div className="filter-route-row__label">{MODE_LABELS[m]}</div>
+              <div className="filter-route-row__chips">
                 {routes.map((r) => {
-                  const hidden = state.transitHiddenRouteIds.includes(r.id);
+                  const on = state.transitShownRouteIds.includes(r.id);
                   return (
-                    <label key={r.id} className={`filter-route-chip ${hidden ? "is-off" : ""}`}>
-                      <input
-                        type="checkbox"
-                        checked={!hidden}
-                        onChange={() =>
-                          onChange({
-                            transitHiddenRouteIds: toggleArrayItem(
-                              state.transitHiddenRouteIds,
-                              r.id
-                            ),
-                          })
-                        }
-                      />
-                      <span className="route-dot" style={{ background: r.color }} />
-                      <span className="route-name">{r.shortName || r.id}</span>
-                    </label>
+                    <button
+                      key={r.id}
+                      className={`route-chip ${on ? "is-on" : ""}`}
+                      style={
+                        on
+                          ? { background: r.color, borderColor: r.color, color: "#fff" }
+                          : { borderColor: r.color, color: r.color }
+                      }
+                      onClick={() =>
+                        onChange({
+                          transitShownRouteIds: toggleArrayItem(
+                            state.transitShownRouteIds,
+                            r.id
+                          ),
+                        })
+                      }
+                      title={r.longName ?? r.shortName}
+                    >
+                      {r.shortName || r.id}
+                    </button>
                   );
                 })}
               </div>
-            </details>
+            </div>
           );
         })}
       </section>

@@ -4,6 +4,7 @@ import { HousingMap } from "./components/HousingMap";
 import { FilterSidebar } from "./components/FilterSidebar";
 import { useHousingData } from "./useHousingData";
 import { useTransitData } from "./useTransitData";
+import { useStationsData } from "./useStationsData";
 import {
   applyFilters,
   initialFilterState,
@@ -18,6 +19,7 @@ function reducer(state: FilterState, patch: Partial<FilterState>): FilterState {
 export default function App() {
   const { housing, error, loading } = useHousingData();
   const allRoutes = useTransitData();
+  const stations = useStationsData();
   const [filters, dispatch] = useReducer(reducer, initialFilterState);
 
   const filteredHousing = useMemo(
@@ -45,6 +47,7 @@ export default function App() {
         housing={filteredHousing}
         filters={filters}
         transitRoutes={shownRoutes}
+        stations={stations}
         onWorkPinChange={(pin) => dispatch({ workPin: pin })}
       />
       <FilterSidebar

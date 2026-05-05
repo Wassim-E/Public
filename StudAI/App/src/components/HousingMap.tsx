@@ -10,10 +10,11 @@ import {
   useMap,
   useMapEvents,
 } from "react-leaflet";
-import type { Housing, TransitRoute } from "../types";
+import type { Housing, Station, TileStyle, TransitRoute } from "../types";
 import type { FilterState } from "../lib/filters";
 import { IsochroneLayer } from "./IsochroneLayer";
 import { TransitLayer } from "./TransitLayer";
+import { StationLayer } from "./StationLayer";
 
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
@@ -27,54 +28,99 @@ L.Icon.Default.mergeOptions({
 
 const PARIS_CENTER: [number, number] = [48.8566, 2.3522];
 
+const TILE_CONFIG: Record<
+  TileStyle,
+  { url: string; attribution: string; subdomains?: string }
+> = {
+  color: {
+    url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  },
+  "mono-light": {
+    url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: "abcd",
+  },
+  "mono-dark": {
+    url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: "abcd",
+  },
+};
+
 type Props = {
   housing: Housing[];
   filters: FilterState;
   transitRoutes: TransitRoute[];
+  stations: Station[];
   onWorkPinChange: (pin: [number, number] | null) => void;
 };
 
-export function HousingMap({ housing, filters, transitRoutes, onWorkPinChange }: Props) {
+export function HousingMap({
+  housing,
+  filters,
+  transitRoutes,
+  stations,
+  onWorkPinChange,
+}: Props) {
   const workPin = filters.workPin;
+  const tile = TILE_CONFIG[filters.tileStyle];
 
   const housingMarkers = useMemo(() => {
     return housing
       .filter((h) => Number.isFinite(h.lat) && Number.isFinite(h.lng))
-      .map((h) => (
-        <CircleMarker
-          key={h.id}
-          center={[h.lat, h.lng]}
-          radius={6}
-          pathOptions={{
-            color: "#0b1020",
-            weight: 1,
-            fillColor: "#7aa2ff",
-            fillOpacity: 0.85,
-          }}
-        >
-          <Popup>
-            <div className="popupTitle">{h.name}</div>
-            <div className="popupMeta">
-              <div>Type: {h.type ?? "—"}</div>
-              <div>Provider: {h.provider ?? "—"}</div>
-              <div>Rent: {h.rent ? `${h.rent}€/month` : "—"}</div>
-              <div>Surface: {h.surface ? `${h.surface}m²` : "—"}</div>
-              <div>Distance: {h.distance ?? "—"}</div>
-              <div>Updated: {h.lastUpdated ?? "—"}</div>
-            </div>
-            {h.url ? (
-              <a className="popupLink" href={h.url} target="_blank" rel="noreferrer">
-                View on Studyrama
-              </a>
-            ) : null}
-          </Popup>
-        </CircleMarker>
-      ));
+      .map((h) => {
+        const isCrous = h.category === "crous";
+        return (
+          <CircleMarker
+            key={h.id}
+            center={[h.lat, h.lng]}
+            radius={6}
+            pathOptions={{
+              color: "#0b1020",
+              weight: 1,
+              fillColor: isCrous ? "#ffb86b" : "#7aa2ff",
+              fillOpacity: 0.9,
+            }}
+          >
+            <Popup>
+              <div className="popupTitle">{h.name}</div>
+              <div className="popupMeta">
+                <div>Type: {h.type ?? "—"}</div>
+                <div>Provider: {h.provider ?? "—"}</div>
+                <div>
+                  Rent:{" "}
+                  {h.rent
+                    ? `${h.rent}€/month`
+                    : isCrous
+                    ? "see CROUS (varies with aid)"
+                    : "—"}
+                </div>
+                <div>Surface: {h.surface ? `${h.surface}m²` : "—"}</div>
+                <div>Distance: {h.distance ?? "—"}</div>
+                <div>Updated: {h.lastUpdated ?? "—"}</div>
+              </div>
+              {h.url ? (
+                <a className="popupLink" href={h.url} target="_blank" rel="noreferrer">
+                  View on Studyrama
+                </a>
+              ) : null}
+            </Popup>
+          </CircleMarker>
+        );
+      });
   }, [housing]);
 
   const bounds = useMemo(() => {
     const pts = housing
-      .map((h) => (Number.isFinite(h.lat) && Number.isFinite(h.lng) ? ([h.lat, h.lng] as const) : null))
+      .map((h) =>
+        Number.isFinite(h.lat) && Number.isFinite(h.lng)
+          ? ([h.lat, h.lng] as const)
+          : null
+      )
       .filter(Boolean) as Array<[number, number]>;
     if (pts.length === 0) return null;
     const latLngs = pts.map((p) => L.latLng(p[0], p[1]));
@@ -84,8 +130,10 @@ export function HousingMap({ housing, filters, transitRoutes, onWorkPinChange }:
   return (
     <MapContainer className="map" center={PARIS_CENTER} zoom={12} scrollWheelZoom preferCanvas>
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        key={filters.tileStyle}
+        attribution={tile.attribution}
+        url={tile.url}
+        subdomains={tile.subdomains ?? "abc"}
         updateWhenZooming={false}
         updateWhenIdle
         keepBuffer={6}
@@ -94,6 +142,10 @@ export function HousingMap({ housing, filters, transitRoutes, onWorkPinChange }:
       <MapClickHandler onClick={(lat, lng) => onWorkPinChange([lat, lng])} />
 
       <TransitLayer routes={transitRoutes} />
+
+      {filters.showStations && (
+        <StationLayer stations={stations} visibleRouteIds={filters.transitShownRouteIds} />
+      )}
 
       <IsochroneLayer
         workPin={workPin}
@@ -139,14 +191,4 @@ function AutoFit({ bounds }: { bounds: L.LatLngBounds | null }) {
     hasFitRef.current = true;
   }, [bounds, map]);
   return null;
-}
-
-function fmt(n: number | undefined) {
-  if (n == null) return "—";
-  return (Math.round(n * 10) / 10).toFixed(1);
-}
-
-function fmtSigned(n: number) {
-  const fixed = (Math.round(n * 10) / 10).toFixed(1);
-  return n >= 0 ? `+${fixed}` : fixed;
 }

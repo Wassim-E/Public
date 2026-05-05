@@ -29,20 +29,28 @@ def get_residences_from_studyrama():
 
 def transform_residence(residence):
     """Transform Studyrama residence data to our Housing format"""
-    # Extract provider from logo or title
-    provider = None
-    if residence.get('logo_annonceur') and residence['logo_annonceur'].get('alt'):
-        provider = residence['logo_annonceur']['alt'].replace('Logo ', '').strip()
-    
+    raw_alt = ((residence.get('logo_annonceur') or {}).get('alt') or '').strip()
+    type_str = (residence.get('type') or '')
+
+    # CROUS detection: alt-text or type field contains "crous" (case-insensitive)
+    is_crous = ('crous' in raw_alt.lower()) or ('crous' in type_str.lower())
+
+    if is_crous:
+        provider = "CROUS"
+        category = "crous"
+    else:
+        provider = raw_alt.replace('Logo ', '').strip() or None
+        category = "private"
+
     # Build full URL
     base_url = "https://logement.studyrama.com"
     full_url = base_url + residence.get('url', '') if residence.get('url') else None
-    
+
     # Get image URL
     image_url = None
     if residence.get('image') and residence['image'].get('image'):
         image_url = residence['image']['image']
-    
+
     # Convert string numbers to actual numbers
     rent = None
     if residence.get('loyer'):
@@ -50,19 +58,19 @@ def transform_residence(residence):
             rent = int(residence['loyer'])
         except (ValueError, TypeError):
             pass
-    
+
     surface = None
     if residence.get('surface'):
         try:
             surface = int(residence['surface'])
         except (ValueError, TypeError):
             pass
-    
-    # Create transformed object
-    transformed = {
+
+    return {
         "id": f"studyrama-{residence.get('id', '')}",
         "name": residence.get('titre', 'Unknown'),
         "provider": provider,
+        "category": category,
         "lat": residence.get('lat'),
         "lng": residence.get('lng'),
         "rent": rent,
@@ -71,10 +79,8 @@ def transform_residence(residence):
         "distance": residence.get('distance'),
         "url": full_url,
         "imageUrl": image_url,
-        "lastUpdated": datetime.now().strftime("%Y-%m-%d")
+        "lastUpdated": datetime.now().strftime("%Y-%m-%d"),
     }
-    
-    return transformed
 
 
 def save_housing_data():
@@ -91,8 +97,8 @@ def save_housing_data():
     valid_data = [r for r in transformed_data if r['lat'] and r['lng']]
     print(f"Valid residences with coordinates: {len(valid_data)}")
     
-    # Save to JSON file
-    output_path = Path(__file__).parent.parent / "App" / "public" / "data" / "housing.json"
+    # Save to JSON file (read by Vite via src/data import)
+    output_path = Path(__file__).parent.parent / "App" / "src" / "data" / "housing.json"
     output_path.parent.mkdir(parents=True, exist_ok=True)
     
     print(f"Saving to {output_path}...")
