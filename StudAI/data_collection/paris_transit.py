@@ -1,11 +1,7 @@
 """
 Download the IDFM rail-network GeoJSON (traces-du-reseau-ferre-idf) and write
-a compact transit.json into App/src/data/ for the studai frontend.
-
-One concern, one script. Run weekly via GitHub Actions; can be run manually with
-`python pipeline/fetch_paris_transit.py` from the StudAI directory.
+a compact transit.json into App/src/data/.
 """
-
 from __future__ import annotations
 
 import json
@@ -20,31 +16,20 @@ GEOJSON_URL = (
     "traces-du-reseau-ferre-idf/exports/geojson"
 )
 
-MODE_MAP = {
-    "METRO": "metro",
-    "RER": "rer",
-    "TRAMWAY": "tram",
-}
+MODE_MAP = {"METRO": "metro", "RER": "rer", "TRAMWAY": "tram"}
 
 OUTPUT_PATH = Path(__file__).resolve().parents[1] / "App" / "src" / "data" / "transit.json"
 
 
 def main() -> int:
-    print(f"GET {GEOJSON_URL}")
+    print(f"[paris-transit] GET {GEOJSON_URL}")
     resp = requests.get(GEOJSON_URL, timeout=180)
     resp.raise_for_status()
-    data = resp.json()
-
-    features = data.get("features", [])
-    print(f"  fetched {len(features)} segment features")
+    features = resp.json().get("features", [])
+    print(f"[paris-transit] Fetched {len(features)} segment features")
 
     grouped: dict[str, dict] = defaultdict(lambda: {
-        "id": "",
-        "shortName": "",
-        "longName": "",
-        "mode": "",
-        "color": "",
-        "shapes": [],
+        "id": "", "shortName": "", "longName": "", "mode": "", "color": "", "shapes": [],
     })
 
     skipped = 0
@@ -90,25 +75,21 @@ def main() -> int:
             entry["color"] = "#" + str(color).lstrip("#").upper()
         entry["shapes"].extend(latlng_polylines)
 
-    # Default color fallback per mode if any route was missing it
     fallback_color = {"metro": "#7AA2FF", "rer": "#E2231A", "tram": "#3FB16E"}
     for r in grouped.values():
         if not r["color"]:
             r["color"] = fallback_color.get(r["mode"], "#7AA2FF")
 
     routes = sorted(grouped.values(), key=lambda r: (r["mode"], r["shortName"] or ""))
-
     by_mode = defaultdict(int)
     for r in routes:
         by_mode[r["mode"]] += 1
-    print(f"  grouped into {len(routes)} routes: " + ", ".join(f"{k}={v}" for k, v in sorted(by_mode.items())))
-    print(f"  {skipped} segments skipped (non-rail / unmapped mode / missing geometry)")
+    print(f"[paris-transit] {len(routes)} routes: " + ", ".join(f"{k}={v}" for k, v in sorted(by_mode.items())))
+    print(f"[paris-transit] {skipped} segments skipped")
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT_PATH.write_text(json.dumps(routes, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-    size_kb = OUTPUT_PATH.stat().st_size / 1024
-    print(f"wrote {OUTPUT_PATH} ({size_kb:.1f} KB)")
-
+    print(f"[paris-transit] Wrote {OUTPUT_PATH} ({OUTPUT_PATH.stat().st_size / 1024:.1f} KB)")
     return 0
 
 

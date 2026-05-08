@@ -1,5 +1,17 @@
 export type HousingCategory = "crous" | "private";
 
+export type RoomType = {
+  type?: string;                // "Studio", "Type 1", etc.
+  rent?: number;                // monthly rent incl. charges
+  surface?: number;             // m²
+  available?: boolean;
+  floor?: number;
+  deposit?: number;             // security deposit in €
+  applicationFee?: number;      // dossier fee in €
+  energyClass?: string;         // "A"–"G"
+  ghgClass?: string;            // greenhouse gas class
+};
+
 export type Housing = {
   id: string;
   name: string;
@@ -7,12 +19,20 @@ export type Housing = {
   category?: HousingCategory;   // crous = state-subsidized, private = paid market
   lat: number;
   lng: number;
-  rent?: number;                // monthly rent in euros (null for CROUS)
-  surface?: number;             // surface in m²
+  rent?: number;                // lowest monthly rent in euros
+  rentMax?: number;             // highest monthly rent (multi-room residences)
+  surface?: number;             // smallest room surface in m²
+  surfaceMax?: number;          // largest room surface in m²
   type?: string;                // "Résidence étudiante", etc.
-  distance?: string;            // distance from center
+  distance?: string;            // formatted distance from Paris centre
   url?: string;
-  imageUrl?: string;
+  imageUrl?: string;            // primary image
+  images?: string[];            // full photo gallery
+  description?: string;         // free-text description of the residence
+  amenities?: string[];         // list of services/equipment offered
+  phone?: string;               // contact phone number
+  address?: string;             // full street address
+  rooms?: RoomType[];           // per-room-type details
   lastUpdated?: string;
 };
 

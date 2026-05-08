@@ -2,6 +2,11 @@
   background: #0b1020;
 }
 
+.map.is-placing .leaflet-container,
+.map.is-placing .leaflet-grab {
+  cursor: crosshair !important;
+}
+
 .leaflet-popup-content-wrapper,
 .leaflet-popup-tip {
   background: rgba(12, 16, 32, 0.92);

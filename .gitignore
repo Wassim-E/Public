@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Raw scraped data — large, changes frequently, not for version control
+StudAI/data_collection/raw/
+
+# Node / frontend
+node_modules/
+dist/
+.env
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db

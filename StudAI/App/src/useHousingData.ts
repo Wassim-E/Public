@@ -7,7 +7,7 @@ type State = {
   error: string | null;
 };
 
-const sanitizedHousing = sanitize(housingData as Housing[]);
+const sanitizedHousing = sanitize(housingData as unknown as Housing[]);
 
 export function useHousingData(): State {
   return { housing: sanitizedHousing, loading: false, error: null };

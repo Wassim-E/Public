@@ -2,10 +2,9 @@
 Download IDFM rail station locations (emplacement-des-gares-idf) and write a
 compact stations.json into App/src/data/.
 
-Each source feature is one (station x line); we group by `id_ref_zda` so the
-same physical station with multiple lines is one entry with a `lines` list.
+Each source feature is one (station × line); we group by `id_ref_zda` so the
+same physical station with multiple lines becomes one entry with a `lines` list.
 """
-
 from __future__ import annotations
 
 import json
@@ -30,11 +29,11 @@ OUTPUT_PATH = Path(__file__).resolve().parents[1] / "App" / "src" / "data" / "st
 
 
 def main() -> int:
-    print(f"GET {GEOJSON_URL}")
+    print(f"[paris-stations] GET {GEOJSON_URL}")
     resp = requests.get(GEOJSON_URL, timeout=180)
     resp.raise_for_status()
     features = resp.json().get("features", [])
-    print(f"  fetched {len(features)} station-line features")
+    print(f"[paris-stations] Fetched {len(features)} station-line features")
 
     grouped: dict[str, dict] = {}
     skipped = 0
@@ -66,13 +65,7 @@ def main() -> int:
         name = props.get("nom_gares") or props.get("nom_iv") or ""
         indice = props.get("indice_lig") or ""
 
-        entry = grouped.setdefault(zda, {
-            "id": zda,
-            "name": name,
-            "lat": lat,
-            "lng": lng,
-            "lines": [],
-        })
+        entry = grouped.setdefault(zda, {"id": zda, "name": name, "lat": lat, "lng": lng, "lines": []})
         if not entry["name"]:
             entry["name"] = name
         line_ref = {"routeId": route_id, "mode": mode, "indice": indice}
@@ -80,12 +73,11 @@ def main() -> int:
             entry["lines"].append(line_ref)
 
     stations = sorted(grouped.values(), key=lambda s: s["name"])
-    print(f"  grouped into {len(stations)} unique stations; skipped {skipped} features")
+    print(f"[paris-stations] {len(stations)} unique stations; {skipped} features skipped")
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT_PATH.write_text(json.dumps(stations, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-    size_kb = OUTPUT_PATH.stat().st_size / 1024
-    print(f"wrote {OUTPUT_PATH} ({size_kb:.1f} KB)")
+    print(f"[paris-stations] Wrote {OUTPUT_PATH} ({OUTPUT_PATH.stat().st_size / 1024:.1f} KB)")
     return 0
 
 

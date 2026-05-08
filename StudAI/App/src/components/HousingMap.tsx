@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef } from "react";
 import {
   CircleMarker,
   MapContainer,
+  Marker,
   Popup,
   TileLayer,
   useMap,
@@ -51,12 +52,31 @@ const TILE_CONFIG: Record<
   },
 };
 
+const WORKPLACE_ICON = L.divIcon({
+  html: `<svg width="30" height="36" viewBox="0 0 30 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M15 35C15 35 4 21 4 13a11 11 0 0 1 22 0c0 8-11 22-11 22z" fill="#7aa2ff" stroke="#0b1020" stroke-width="1.5"/>
+    <polygon points="15,4 22,8 8,8" fill="rgba(255,255,255,0.85)"/>
+    <rect x="8.5" y="8" width="13" height="10" rx="0.5" fill="white"/>
+    <rect x="10" y="10" width="2" height="2" fill="#7aa2ff"/>
+    <rect x="14" y="10" width="2" height="2" fill="#7aa2ff"/>
+    <rect x="18" y="10" width="2" height="2" fill="#7aa2ff"/>
+    <rect x="10" y="13.5" width="2" height="2" fill="#7aa2ff"/>
+    <rect x="18" y="13.5" width="2" height="2" fill="#7aa2ff"/>
+    <rect x="13.5" y="13" width="3" height="5" fill="#7aa2ff"/>
+  </svg>`,
+  className: "",
+  iconSize: [30, 36],
+  iconAnchor: [15, 35],
+  popupAnchor: [0, -35],
+});
+
 type Props = {
   housing: Housing[];
   filters: FilterState;
   transitRoutes: TransitRoute[];
   stations: Station[];
-  onWorkPinChange: (pin: [number, number] | null) => void;
+  isPlacingWorkPin: boolean;
+  onWorkPinChange: (pin: [number, number] | null, label?: string) => void;
 };
 
 export function HousingMap({
@@ -64,6 +84,7 @@ export function HousingMap({
   filters,
   transitRoutes,
   stations,
+  isPlacingWorkPin,
   onWorkPinChange,
 }: Props) {
   const workPin = filters.workPin;
@@ -105,7 +126,7 @@ export function HousingMap({
               </div>
               {h.url ? (
                 <a className="popupLink" href={h.url} target="_blank" rel="noreferrer">
-                  View on Studyrama
+                  View listing
                 </a>
               ) : null}
             </Popup>
@@ -128,7 +149,13 @@ export function HousingMap({
   }, [housing]);
 
   return (
-    <MapContainer className="map" center={PARIS_CENTER} zoom={12} scrollWheelZoom preferCanvas>
+    <MapContainer
+      className={`map${isPlacingWorkPin ? " is-placing" : ""}`}
+      center={PARIS_CENTER}
+      zoom={12}
+      scrollWheelZoom
+      preferCanvas
+    >
       <TileLayer
         key={filters.tileStyle}
         attribution={tile.attribution}
@@ -139,7 +166,10 @@ export function HousingMap({
         keepBuffer={6}
       />
 
-      <MapClickHandler onClick={(lat, lng) => onWorkPinChange([lat, lng])} />
+      <MapClickHandler
+        isPlacing={isPlacingWorkPin}
+        onClick={(lat, lng) => onWorkPinChange([lat, lng])}
+      />
 
       <TransitLayer routes={transitRoutes} />
 
@@ -154,7 +184,7 @@ export function HousingMap({
       />
 
       {workPin ? (
-        <CircleMarker center={workPin} radius={10} pathOptions={{ color: "#7aa2ff", weight: 3 }}>
+        <Marker position={workPin} icon={WORKPLACE_ICON}>
           <Popup>
             <div className="popupTitle">Workplace</div>
             <div className="popupMeta">
@@ -163,7 +193,7 @@ export function HousingMap({
               </div>
             </div>
           </Popup>
-        </CircleMarker>
+        </Marker>
       ) : null}
 
       {housingMarkers}
@@ -173,10 +203,16 @@ export function HousingMap({
   );
 }
 
-function MapClickHandler({ onClick }: { onClick: (lat: number, lng: number) => void }) {
+function MapClickHandler({
+  isPlacing,
+  onClick,
+}: {
+  isPlacing: boolean;
+  onClick: (lat: number, lng: number) => void;
+}) {
   useMapEvents({
     click(e) {
-      onClick(e.latlng.lat, e.latlng.lng);
+      if (isPlacing) onClick(e.latlng.lat, e.latlng.lng);
     },
   });
   return null;
