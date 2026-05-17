@@ -26,8 +26,13 @@ type Props = {
   onChange: (patch: Partial<FilterState>) => void;
   matchCount: number;
   totalCount: number;
+  ratedCount: number;
   allRoutes: TransitRoute[];
   stations: Station[];
+  isComputing: boolean;
+  routingRemaining: number;
+  routingTotal: number;
+  routingError: string | null;
   isPlacingWorkPin: boolean;
   onStartPlacingWorkPin: () => void;
   onCancelPlacingWorkPin: () => void;
@@ -72,7 +77,7 @@ const CANONICAL_AMENITIES = [
   "Local poubelles",
 ];
 
-type SectionId = "map" | "workplace" | "filters" | "surface" | "transit" | "amenities";
+type SectionId = "map" | "workplace" | "filters" | "surface" | "transit" | "amenities" | "reviews";
 
 type SearchResult = { lat: number; lng: number; label: string };
 
@@ -108,8 +113,13 @@ export function FilterSidebar({
   onChange,
   matchCount,
   totalCount,
+  ratedCount,
   allRoutes,
   stations,
+  isComputing,
+  routingRemaining,
+  routingTotal,
+  routingError,
   isPlacingWorkPin,
   onStartPlacingWorkPin,
   onCancelPlacingWorkPin,
@@ -123,6 +133,7 @@ export function FilterSidebar({
     surface: false,
     transit: false,
     amenities: false,
+    reviews: false,
   });
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -153,6 +164,9 @@ export function FilterSidebar({
     state.minSurface != null || state.maxSurface != null
       ? `${state.minSurface ?? 0}–${state.maxSurface ?? "∞"} m²`
       : undefined;
+
+  const computedCount = routingTotal - routingRemaining;
+  const computeProgress = routingTotal > 0 ? Math.round((computedCount / routingTotal) * 100) : 0;
 
   return (
     <aside className="panel">
@@ -274,6 +288,31 @@ export function FilterSidebar({
               </>
             )}
           </div>
+
+          {/* Commute computation progress */}
+          {state.workPin && (isComputing || routingTotal > 0) && (
+            <div className="commute-progress-wrap">
+              {isComputing ? (
+                <>
+                  <div className="commute-progress-label">
+                    <span>Computing commutes…</span>
+                    <span className="filter-val">{computedCount} / {routingTotal}</span>
+                  </div>
+                  <div className="routing-progress">
+                    <div
+                      className="routing-progress__fill"
+                      style={{ width: `${computeProgress}%` }}
+                    />
+                  </div>
+                </>
+              ) : (
+                <span className="commute-done">✓ Commutes ready</span>
+              )}
+              {routingError && (
+                <span className="filter-hint routing-error">{routingError}</span>
+              )}
+            </div>
+          )}
         </div>
       </Section>
 
@@ -370,7 +409,7 @@ export function FilterSidebar({
 
           <div className="filter-row">
             <div className="filter-label">
-              <span>Transit speed</span>
+              <span>Fallback speed</span>
               <span className="filter-val">{state.avgTransitSpeedKmh} km/h</span>
             </div>
             <input
@@ -480,6 +519,46 @@ export function FilterSidebar({
               Clear
             </button>
           )}
+        </div>
+      </Section>
+
+      {/* Google Reviews */}
+      <Section
+        title="Google Rating"
+        badge={
+          state.minGoogleRating !== null
+            ? `≥ ${state.minGoogleRating} ★`
+            : `${ratedCount} rated`
+        }
+        open={open.reviews}
+        onToggle={() => toggle("reviews")}
+      >
+        <div className="filters-inner">
+          <div className="filter-row">
+            <div className="filter-label">
+              <span>Min rating</span>
+              <span className="filter-val">
+                {state.minGoogleRating !== null ? `≥ ${state.minGoogleRating} ★` : "Off"}
+              </span>
+            </div>
+            <input
+              className="range"
+              type="range"
+              min={0}
+              max={5}
+              step={0.5}
+              value={state.minGoogleRating ?? 0}
+              onChange={(e) => {
+                const val = Number(e.target.value);
+                onChange({ minGoogleRating: val === 0 ? null : val });
+              }}
+            />
+            {state.minGoogleRating !== null && (
+              <span className="filter-hint">
+                Residences without a rating are hidden
+              </span>
+            )}
+          </div>
         </div>
       </Section>
 

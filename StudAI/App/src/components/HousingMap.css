@@ -37,3 +37,18 @@
   text-decoration: underline;
 }
 
+.popupCommute {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 4px 0;
+  font-weight: 600;
+  color: #7aa2ff;
+}
+
+.popupCommuteModes {
+  font-size: 11px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.55);
+}
+

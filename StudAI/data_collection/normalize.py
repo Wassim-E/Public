@@ -21,6 +21,13 @@ from datetime import datetime, timezone
 from math import cos, radians, sqrt
 from pathlib import Path
 
+def _norm_name(s: str) -> str:
+    """Lowercase, strip accents, collapse non-alphanumeric to spaces."""
+    s = unicodedata.normalize("NFD", s.lower())
+    s = "".join(c for c in s if not unicodedata.combining(c))
+    s = re.sub(r"[^a-z0-9 ]", " ", s)
+    return re.sub(r"\s+", " ", s).strip()
+
 RAW_DIR = Path(__file__).parent / "raw"
 OUTPUT = Path(__file__).resolve().parents[1] / "App" / "src" / "data" / "housing.json"
 
@@ -345,21 +352,46 @@ def _richness(r: dict) -> int:
     return score
 
 
+def _source(res: dict) -> str:
+    """Extract source prefix from id, e.g. 'studyrama' or 'nexity-studea'."""
+    return res.get("id", "").rsplit("-", maxsplit=1)[0]
+
+
 def _deduplicate_and_merge(residences: list[dict]) -> list[dict]:
     """
-    Residences within 150 m are considered the same building.
-    Instead of dropping one, MERGE them: the first found is the base,
-    subsequent matches are merged into it.
+    Two records are the same building when:
+      - Same source: coordinates within 50 m AND same normalized name
+        (prevents adjacent numbered buildings like St Ouen 1/2 from collapsing).
+      - Cross source: same normalized name (Nexity POI centroid drifts 150–800 m,
+        so distance alone is unreliable).
+    The first found is the base; subsequent matches are merged into it.
     """
     kept: list[dict] = []
+    kept_names: list[str] = []
+
     for res in residences:
         lat, lng = res["lat"], res["lng"]
+        name = _norm_name(res.get("name", ""))
+        src = _source(res)
+
         dup_idx = next(
-            (i for i, k in enumerate(kept) if _km(lat, lng, k["lat"], k["lng"]) < DEDUP_KM),
+            (
+                i for i, k in enumerate(kept)
+                if (
+                    _source(k) == src
+                    and name and kept_names[i] == name
+                    and _km(lat, lng, k["lat"], k["lng"]) < 0.05   # 50 m same-source
+                )
+                or (
+                    _source(k) != src
+                    and name and kept_names[i] == name              # cross-source name match
+                )
+            ),
             None,
         )
         if dup_idx is None:
             kept.append(res)
+            kept_names.append(name)
         else:
             kept[dup_idx] = _merge_records(kept[dup_idx], res)
     return kept

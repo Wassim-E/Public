@@ -197,6 +197,33 @@
   font-style: italic;
 }
 
+.routing-error {
+  color: #ff6b6b;
+  font-style: normal;
+}
+
+.filter-link {
+  color: var(--accent);
+  text-decoration: none;
+}
+.filter-link:hover {
+  text-decoration: underline;
+}
+
+.routing-progress {
+  height: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 0;
+  overflow: hidden;
+}
+
+.routing-progress__fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.6s ease;
+  border-radius: 0;
+}
+
 .range {
   width: 100%;
   accent-color: var(--accent);
@@ -311,6 +338,26 @@
   font-size: 11px;
   color: var(--muted);
   white-space: nowrap;
+}
+
+/* ── Commute progress (inside Workplace section) ── */
+.commute-progress-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding-top: 4px;
+}
+
+.commute-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.commute-done {
+  font-size: 11px;
+  color: #4ade80;
 }
 
 /* ── Surface section ── */

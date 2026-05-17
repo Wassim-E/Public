@@ -1,4 +1,4 @@
-import type { Housing, HousingCategory, TileStyle, TransitRoute, Station } from "../types";
+import type { Housing, HousingCategory, TileStyle, TransitRoute, Station, CommuteMap } from "../types";
 import { haversineKm } from "./isochrone";
 
 const WALK_SPEED_KMH = 5;
@@ -23,6 +23,9 @@ export type FilterState = {
   // amenities filter (all required amenities must be present)
   requiredAmenities: string[];
 
+  // google rating filter
+  minGoogleRating: number | null;
+
   // map style
   tileStyle: TileStyle;
 };
@@ -39,15 +42,17 @@ export const initialFilterState: FilterState = {
   transitShownRouteIds: [],
   showStations: true,
   requiredAmenities: [],
+  minGoogleRating: null,
   tileStyle: "mono-light",
 };
 
 export function applyFilters(
   housing: Housing[],
   state: FilterState,
-  stations: Station[] = []
+  stations: Station[] = [],
+  commuteMap: CommuteMap = {}
 ): Housing[] {
-  // Precompute nearest station to workplace once per filter call
+  // Precompute nearest station to workplace once (used when exact time is unavailable)
   let nearestWorkStation: Station | null = null;
   let nearestWorkDist = Infinity;
   if (state.workPin && state.maxCommuteMinutes != null && stations.length > 0) {
@@ -69,15 +74,21 @@ export function applyFilters(
       const has = new Set(h.amenities ?? []);
       if (!state.requiredAmenities.every((a) => has.has(a))) return false;
     }
+    if (state.minGoogleRating !== null) {
+      if (h.googleRating === undefined || h.googleRating < state.minGoogleRating) return false;
+    }
     if (state.workPin && state.maxCommuteMinutes != null) {
-      const minutes = estimateCommuteMinutes(
-        [h.lat, h.lng],
-        state.workPin,
-        stations,
-        nearestWorkStation,
-        nearestWorkDist,
-        state.avgTransitSpeedKmh
-      );
+      const exact = commuteMap[h.id];
+      const minutes = exact
+        ? exact.minutes
+        : estimateCommuteMinutes(
+            [h.lat, h.lng],
+            state.workPin,
+            stations,
+            nearestWorkStation,
+            nearestWorkDist,
+            state.avgTransitSpeedKmh
+          );
       if (minutes > state.maxCommuteMinutes) return false;
     }
     return true;

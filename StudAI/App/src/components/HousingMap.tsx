@@ -1,17 +1,15 @@
 import "leaflet/dist/leaflet.css";
 import "./HousingMap.css";
 import L from "leaflet";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef } from "react";
 import {
-  CircleMarker,
   MapContainer,
   Marker,
-  Popup,
   TileLayer,
   useMap,
   useMapEvents,
 } from "react-leaflet";
-import type { Housing, Station, TileStyle, TransitRoute } from "../types";
+import type { Housing, Station, TileStyle, TransitRoute, CommuteMap } from "../types";
 import type { FilterState } from "../lib/filters";
 import { IsochroneLayer } from "./IsochroneLayer";
 import { TransitLayer } from "./TransitLayer";
@@ -75,8 +73,11 @@ type Props = {
   filters: FilterState;
   transitRoutes: TransitRoute[];
   stations: Station[];
+  commuteMap: CommuteMap;
   isPlacingWorkPin: boolean;
+  selectedId: string | null;
   onWorkPinChange: (pin: [number, number] | null, label?: string) => void;
+  onSelect: (housing: Housing) => void;
 };
 
 export function HousingMap({
@@ -84,69 +85,14 @@ export function HousingMap({
   filters,
   transitRoutes,
   stations,
+  commuteMap,
   isPlacingWorkPin,
+  selectedId,
   onWorkPinChange,
+  onSelect,
 }: Props) {
   const workPin = filters.workPin;
   const tile = TILE_CONFIG[filters.tileStyle];
-
-  const housingMarkers = useMemo(() => {
-    return housing
-      .filter((h) => Number.isFinite(h.lat) && Number.isFinite(h.lng))
-      .map((h) => {
-        const isCrous = h.category === "crous";
-        return (
-          <CircleMarker
-            key={h.id}
-            center={[h.lat, h.lng]}
-            radius={6}
-            pathOptions={{
-              color: "#0b1020",
-              weight: 1,
-              fillColor: isCrous ? "#ffb86b" : "#7aa2ff",
-              fillOpacity: 0.9,
-            }}
-          >
-            <Popup>
-              <div className="popupTitle">{h.name}</div>
-              <div className="popupMeta">
-                <div>Type: {h.type ?? "—"}</div>
-                <div>Provider: {h.provider ?? "—"}</div>
-                <div>
-                  Rent:{" "}
-                  {h.rent
-                    ? `${h.rent}€/month`
-                    : isCrous
-                    ? "see CROUS (varies with aid)"
-                    : "—"}
-                </div>
-                <div>Surface: {h.surface ? `${h.surface}m²` : "—"}</div>
-                <div>Distance: {h.distance ?? "—"}</div>
-                <div>Updated: {h.lastUpdated ?? "—"}</div>
-              </div>
-              {h.url ? (
-                <a className="popupLink" href={h.url} target="_blank" rel="noreferrer">
-                  View listing
-                </a>
-              ) : null}
-            </Popup>
-          </CircleMarker>
-        );
-      });
-  }, [housing]);
-
-  const bounds = useMemo(() => {
-    const pts = housing
-      .map((h) =>
-        Number.isFinite(h.lat) && Number.isFinite(h.lng)
-          ? ([h.lat, h.lng] as const)
-          : null
-      )
-      .filter(Boolean) as Array<[number, number]>;
-    if (pts.length === 0) return null;
-    const latLngs = pts.map((p) => L.latLng(p[0], p[1]));
-    return L.latLngBounds(latLngs);
-  }, [housing]);
 
   return (
     <MapContainer
@@ -155,6 +101,7 @@ export function HousingMap({
       zoom={12}
       scrollWheelZoom
       preferCanvas
+      zoomControl={false}
     >
       <TileLayer
         key={filters.tileStyle}
@@ -184,23 +131,55 @@ export function HousingMap({
       />
 
       {workPin ? (
-        <Marker position={workPin} icon={WORKPLACE_ICON}>
-          <Popup>
-            <div className="popupTitle">Workplace</div>
-            <div className="popupMeta">
-              <div>
-                {workPin[0].toFixed(5)}, {workPin[1].toFixed(5)}
-              </div>
-            </div>
-          </Popup>
-        </Marker>
+        <Marker position={workPin} icon={WORKPLACE_ICON} />
       ) : null}
 
-      {housingMarkers}
+      <MarkersLayer housing={housing} selectedId={selectedId} onSelect={onSelect} />
 
-      <AutoFit bounds={bounds} />
+      <AutoFit housing={housing} />
     </MapContainer>
   );
+}
+
+// Renders housing markers imperatively via native Leaflet — bypasses React
+// reconciliation for all marker updates, so pan/zoom stay smooth.
+function MarkersLayer({
+  housing,
+  selectedId,
+  onSelect,
+}: {
+  housing: Housing[];
+  selectedId: string | null;
+  onSelect: (h: Housing) => void;
+}) {
+  const map = useMap();
+  const onSelectRef = useRef(onSelect);
+  onSelectRef.current = onSelect;
+
+  useEffect(() => {
+    const layer = L.layerGroup().addTo(map);
+
+    for (const h of housing) {
+      if (!Number.isFinite(h.lat) || !Number.isFinite(h.lng)) continue;
+      const isSelected = h.id === selectedId;
+      const fill = h.category === "crous" ? "#ffb86b" : "#7aa2ff";
+      L.circleMarker([h.lat, h.lng], {
+        radius: isSelected ? 9 : 6,
+        color: isSelected ? "#fff" : "#0b1020",
+        weight: isSelected ? 2 : 1,
+        fillColor: fill,
+        fillOpacity: 0.9,
+      })
+        .on("click", () => onSelectRef.current(h))
+        .addTo(layer);
+    }
+
+    return () => {
+      layer.remove();
+    };
+  }, [map, housing, selectedId]);
+
+  return null;
 }
 
 function MapClickHandler({
@@ -218,13 +197,19 @@ function MapClickHandler({
   return null;
 }
 
-function AutoFit({ bounds }: { bounds: L.LatLngBounds | null }) {
+function AutoFit({ housing }: { housing: Housing[] }) {
   const map = useMap();
   const hasFitRef = useRef(false);
+
   useEffect(() => {
-    if (!bounds || hasFitRef.current) return;
-    map.fitBounds(bounds.pad(0.2));
+    if (hasFitRef.current || housing.length === 0) return;
+    const pts = housing
+      .filter((h) => Number.isFinite(h.lat) && Number.isFinite(h.lng))
+      .map((h) => L.latLng(h.lat, h.lng));
+    if (pts.length === 0) return;
+    map.fitBounds(L.latLngBounds(pts).pad(0.2));
     hasFitRef.current = true;
-  }, [bounds, map]);
+  }, [housing, map]);
+
   return null;
 }

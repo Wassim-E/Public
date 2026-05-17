@@ -1,38 +1,69 @@
 export type HousingCategory = "crous" | "private";
 
 export type RoomType = {
-  type?: string;                // "Studio", "Type 1", etc.
-  rent?: number;                // monthly rent incl. charges
-  surface?: number;             // m²
+  type?: string;
+  rent?: number;
+  surface?: number;
+  furnished?: boolean;
   available?: boolean;
   floor?: number;
-  deposit?: number;             // security deposit in €
-  applicationFee?: number;      // dossier fee in €
-  energyClass?: string;         // "A"–"G"
-  ghgClass?: string;            // greenhouse gas class
+  deposit?: number;
+  applicationFee?: number;
+  energyClass?: string;
+  ghgClass?: string;
+};
+
+export type PriceSource = {
+  source: string;           // "studyrama" | "nexity" | "action_logement"
+  sourceLabel: string;      // "Studyrama" | "Nexity Studéa" | "Action Logement"
+  url?: string;
+  rent?: number;
+  rentMax?: number;
+  surface?: number;
+  surfaceMax?: number;
+  rooms?: RoomType[];
+};
+
+export type ReviewEntry = {
+  author: string;
+  rating: number | null;
+  date: string;
+  text: string;
 };
 
 export type Housing = {
   id: string;
   name: string;
   provider?: string;
-  category?: HousingCategory;   // crous = state-subsidized, private = paid market
+  category?: HousingCategory;
   lat: number;
   lng: number;
-  rent?: number;                // lowest monthly rent in euros
-  rentMax?: number;             // highest monthly rent (multi-room residences)
-  surface?: number;             // smallest room surface in m²
-  surfaceMax?: number;          // largest room surface in m²
-  type?: string;                // "Résidence étudiante", etc.
-  distance?: string;            // formatted distance from Paris centre
-  url?: string;
-  imageUrl?: string;            // primary image
-  images?: string[];            // full photo gallery
-  description?: string;         // free-text description of the residence
-  amenities?: string[];         // list of services/equipment offered
-  phone?: string;               // contact phone number
-  address?: string;             // full street address
-  rooms?: RoomType[];           // per-room-type details
+
+  // Aggregated across all price sources (for filtering)
+  rent?: number;
+  rentMax?: number;
+  surface?: number;
+  surfaceMax?: number;
+
+  type?: string;
+  distance?: string;
+  imageUrl?: string;
+  images?: string[];
+  description?: string;
+  amenities?: string[];
+  phone?: string;
+  address?: string;
+
+  // Multi-source data
+  prices?: PriceSource[];
+  sources?: string[];
+
+  // Google Reviews
+  googleRating?: number;
+  googleRatingCount?: number;
+  googleReviews?: ReviewEntry[];
+  googleMapsUrl?: string;
+
   lastUpdated?: string;
 };
 
@@ -40,11 +71,11 @@ export type TransitMode = "metro" | "rer" | "tram";
 
 export type TransitRoute = {
   id: string;
-  shortName: string;            // "1", "A", "T3a"
-  longName?: string;            // commercial name
+  shortName: string;
+  longName?: string;
   mode: TransitMode;
-  color: string;                // "#FFCD00"
-  shapes: [number, number][][]; // multiple polylines per route ([lat,lng])
+  color: string;
+  shapes: [number, number][][];
 };
 
 export type Station = {
@@ -57,3 +88,9 @@ export type Station = {
 
 export type TileStyle = "color" | "mono-light" | "mono-dark";
 
+export type CommuteResult = {
+  minutes: number;
+  modes: string[];
+};
+
+export type CommuteMap = Record<string, CommuteResult>;
