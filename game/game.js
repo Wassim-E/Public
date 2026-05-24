@@ -2,10 +2,15 @@
 // Edge Wars — 2-player hot-seat prototype
 // ============================================================
 
-const GRID = 10;                // 10x10 squares -> 11x11 points
+const GRID = 6;                 // 6x6 squares -> 7x7 points
 const POINTS = GRID + 1;
-const PLACE_COUNT = 8;          // edges each player places
-const MOVES_PER_TURN = 2;
+const PLACE_COUNT = 4;          // edges each player places
+const DICE_MIN = 1;
+const DICE_MAX = 6;
+
+function rollDice() {
+  return Math.floor(Math.random() * (DICE_MAX - DICE_MIN + 1)) + DICE_MIN;
+}
 
 const canvas = document.getElementById('board');
 const ctx = canvas.getContext('2d');
@@ -111,7 +116,8 @@ function newGame() {
     edges: [],                // {id, player, a, b}
     nextId: 1,
     currentPlayer: 1,
-    movesLeft: MOVES_PER_TURN,
+    dice: 0,                  // dice value rolled at start of this turn
+    movesLeft: 0,             // moves remaining in the current turn
     selectedId: null,
     hover: null,              // {a,b} of the nearest slot under cursor (during setup)
     message: '',
@@ -316,7 +322,7 @@ function updateUI() {
       break;
     case 'play': {
       const who = state.currentPlayer;
-      statusEl.textContent = `Player ${who}'s turn — moves left: ${state.movesLeft}. Click your edge, then a highlighted destination.`;
+      statusEl.textContent = `Player ${who}'s turn — rolled ${state.dice}, moves left: ${state.movesLeft}. Click your edge, then a highlighted destination.`;
       readyBtn.disabled = true;
       readyBtn.textContent = 'Ready';
       endTurnBtn.disabled = false;
@@ -460,7 +466,8 @@ function handlePlayClick(mx, my) {
 
 function nextTurn() {
   state.currentPlayer = state.currentPlayer === 1 ? 2 : 1;
-  state.movesLeft = MOVES_PER_TURN;
+  state.dice = rollDice();
+  state.movesLeft = state.dice;
   state.selectedId = null;
 }
 
@@ -476,7 +483,8 @@ readyBtn.addEventListener('click', () => {
   } else if (state.phase === 'setup-p2' && placedCount(2) === PLACE_COUNT) {
     state.phase = 'play';
     state.currentPlayer = 1;
-    state.movesLeft = MOVES_PER_TURN;
+    state.dice = rollDice();
+    state.movesLeft = state.dice;
     state.hover = null;
     state.selectedId = null;
     render();
