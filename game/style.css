@@ -1,0 +1,114 @@
+:root {
+  --bg: #0e1116;
+  --panel: #161b22;
+  --ink: #e6edf3;
+  --muted: #8b949e;
+  --accent: #58a6ff;
+  --p1: #ff6b6b;
+  --p2: #4dabf7;
+  --warn: #f7c948;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.app {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+header h1 {
+  margin: 0 0 4px 0;
+  font-size: 22px;
+  letter-spacing: 0.5px;
+}
+
+.status {
+  background: var(--panel);
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  min-height: 20px;
+}
+
+.board-wrap {
+  display: flex;
+  justify-content: center;
+  background: var(--panel);
+  padding: 8px;
+  border-radius: 12px;
+}
+
+canvas {
+  display: block;
+  touch-action: none;
+  max-width: 100%;
+  height: auto;
+  background: #0b0d11;
+  border-radius: 8px;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.counts {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 15px;
+}
+.counts .p1 { color: var(--p1); }
+.counts .p2 { color: var(--p2); }
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+button {
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid #30363d;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.15s, border-color 0.15s;
+}
+button:hover:not(:disabled) { background: #21262d; border-color: var(--accent); }
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+#ready-btn:not(:disabled) { border-color: var(--warn); color: var(--warn); }
+
+.rules {
+  background: var(--panel);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.rules summary {
+  cursor: pointer;
+  color: var(--ink);
+  font-weight: 600;
+}
+.rules ul { margin: 8px 0 0 0; padding-left: 18px; }
+.rules li { margin: 4px 0; }
+.rules em, .rules strong { color: var(--ink); }
