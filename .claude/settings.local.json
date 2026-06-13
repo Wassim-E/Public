@@ -3,7 +3,29 @@
     "allow": [
       "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\admin\\\\Documents\\\\Personnal Projects\\\\Fuck Around\\\\Public\" -Recurse -Force)",
       "Bash(Select-Object FullName, PSIsContainer)",
-      "Bash(Sort-Object FullName)"
+      "Bash(Sort-Object FullName)",
+      "Bash(git -C \"C:\\\\Users\\\\admin\\\\Documents\\\\Personnal Projects\\\\Fuck Around\\\\Public\" status --short)",
+      "WebFetch(domain:opendata.paris.fr)",
+      "WebFetch(domain:www.insee.fr)",
+      "WebFetch(domain:data.iledefrance.fr)",
+      "Bash(python insee_demographics/insee_demographics.py)",
+      "Bash(python insee_demographics/insee_demographics.py --no-download)",
+      "Bash(python -c ' *)",
+      "Bash(python run.py --aggregate)",
+      "Bash(npx vite *)",
+      "Bash(kill %1)",
+      "Bash(jobs -l)",
+      "Bash(netstat -ano -p tcp)",
+      "Bash(findstr \":5173 :5183\")",
+      "Bash(python check_data.py)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(jupyter --version)",
+      "Bash(python -c \"import jupyter\")",
+      "Bash(python -c \"import nbformat; import nbconvert; print\\('ok'\\)\")",
+      "Bash(python -c \"from curl_cffi import requests as cf; print\\('curl_cffi ok'\\)\")",
+      "Bash(python -c \"from playwright.sync_api import sync_playwright; p = sync_playwright\\(\\).start\\(\\); b = p.chromium.launch\\(headless=True\\); print\\('browser ok'\\); b.close\\(\\); p.stop\\(\\)\")"
     ]
   }
 }

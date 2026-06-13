@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "studai-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "StudAI/App", "run", "dev"],
+      "port": 5173
+    }
+  ]
+}
